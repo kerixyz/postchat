@@ -5,3 +5,4 @@ pandas
 textblob
 chat-downloader
 python-dotenv
+requests
