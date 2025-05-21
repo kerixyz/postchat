@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Compare Viewer Personas - Twitch Insights{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+
+  <h2 class="text-2xl font-bold text-purple-400 mb-6">Compare Viewer Personas</h2>
+
+  <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+    <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-white">
+        <h3 class="text-lg font-bold mb-2">Select VOD A</h3>
+        <select name="vod_a" required class="w-full bg-gray-900 text-white border border-gray-600 rounded px-3 py-2">
+        {% for vod in vod_options %}
+            <option value="{{ vod.id }}" {% if vod.id == vod_a %}selected{% endif %}>
+            {{ vod.broadcaster }} - {{ vod.title }} ({{ vod.stream_date }})
+            </option>
+        {% endfor %}
+        </select>
+    </div>
+
+    <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-white">
+        <h3 class="text-lg font-bold mb-2">Select VOD B</h3>
+        <select name="vod_b" required class="w-full bg-gray-900 text-white border border-gray-600 rounded px-3 py-2">
+        {% for vod in vod_options %}
+            <option value="{{ vod.id }}" {% if vod.id == vod_b %}selected{% endif %}>
+            {{ vod.broadcaster }} - {{ vod.title }} ({{ vod.stream_date }})
+            </option>
+        {% endfor %}
+        </select>
+    </div>
+
+    <div class="md:col-span-2 text-center">
+        <button type="submit" class="mt-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2 rounded">
+        Compare
+        </button>
+    </div>
+    </form>
+
+
+  {% if personas_a and personas_b %}
+    <!-- VOD Metadata Header -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+      <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-white">
+        <h3 class="text-xl font-bold mb-2">{{ meta_a.title }}</h3>
+        <p><strong>Date:</strong> {{ meta_a.stream_date }}</p>
+        <p><strong>Duration:</strong> {{ meta_a.duration }}</p>
+        <p><strong>Language:</strong> {{ meta_a.language }}</p>
+        <p><strong>Broadcaster:</strong> {{ meta_a.broadcaster }}</p>
+      </div>
+      <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-white">
+        <h3 class="text-xl font-bold mb-2">{{ meta_b.title }}</h3>
+        <p><strong>Date:</strong> {{ meta_b.stream_date }}</p>
+        <p><strong>Duration:</strong> {{ meta_b.duration }}</p>
+        <p><strong>Language:</strong> {{ meta_b.language }}</p>
+        <p><strong>Broadcaster:</strong> {{ meta_b.broadcaster }}</p>
+      </div>
+    </div>
+
+    <!-- Side-by-side Persona Columns -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- VOD A Column -->
+      <div>
+        <h3 class="text-lg font-semibold text-purple-300 mb-3">Personas in {{ meta_a.title[:50] }}</h3>
+        {% for p in personas_a %}
+          <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-4 text-white">
+            <h4 class="text-lg font-bold">{{ p.name }}</h4>
+            <p><strong>Share:</strong> {{ p.share }}%</p>
+            <p><strong>Theme:</strong> {{ p.theme }}</p>
+            <p><strong>Sentiment:</strong> {{ p.sentiment_label }} ({{ p.sentiment_percent }})</p>
+            <p class="mt-1 text-sm text-gray-300">{{ p.description }}</p>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- VOD B Column -->
+      <div>
+        <h3 class="text-lg font-semibold text-purple-300 mb-3">Personas in {{ meta_b.title[:50] }}</h3>
+        {% for p in personas_b %}
+          <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-4 text-white">
+            <h4 class="text-lg font-bold">{{ p.name }}</h4>
+            <p><strong>Share:</strong> {{ p.share }}%</p>
+            <p><strong>Theme:</strong> {{ p.theme }}</p>
+            <p><strong>Sentiment:</strong> {{ p.sentiment_label }} ({{ p.sentiment_percent }})</p>
+            <p class="mt-1 text-sm text-gray-300">{{ p.description }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

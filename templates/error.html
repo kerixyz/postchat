@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Error{% endblock %}
+{% block content %}
+    <div class="bg-red-900/30 p-6 rounded-xl border border-red-500 max-w-2xl mx-auto">
+        <h1 class="text-2xl font-bold text-red-400 mb-4">Something went wrong 😞</h1>
+        <p class="text-white text-sm">{{ message }}</p>
+        <a href="/" class="inline-block mt-6 text-indigo-400 hover:underline">← Go back home</a>
+    </div>
+{% endblock %}
