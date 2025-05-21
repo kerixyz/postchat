@@ -4,3 +4,4 @@ openai
 pandas
 textblob
 chat-downloader
+python-dotenv
