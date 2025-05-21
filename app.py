@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 import os
+import requests
 import json
 import pandas as pd
 from datetime import datetime
@@ -129,6 +130,28 @@ def compare():
 
     return render_template('compare.html', vod_options=vod_options)
 
+def upload_to_supabase(local_path, remote_path):
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_API_KEY")
+    bucket = os.getenv("SUPABASE_BUCKET", "postchat")
+
+    full_url = f"{url}/storage/v1/object/{bucket}/{remote_path}"
+    
+    with open(local_path, 'rb') as file_data:
+        res = requests.post(
+            full_url,
+            headers={
+                "apikey": key,
+                "Authorization": f"Bearer {key}",
+                "Content-Type": "application/octet-stream"
+            },
+            data=file_data
+        )
+
+    if res.status_code in [200, 201]:
+        print(f"✅ Uploaded {remote_path} to Supabase.")
+    else:
+        print(f"❌ Upload failed: {res.status_code} - {res.text}")
 
 def load_json(relative_path):
     path = os.path.join(app.config['DATA_DIR'], relative_path)
@@ -143,6 +166,8 @@ def save_analysis(vod_id, data):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'w') as f:
             json.dump(data[key], f)
+
+        upload_to_supabase(path, f"{key}/{vod_id}_{key}.json")
 
 
 
