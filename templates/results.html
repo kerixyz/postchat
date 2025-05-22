@@ -141,7 +141,13 @@
 
             <div class="mt-6">
             <div class="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
-                <div class="h-full bg-indigo-500 rounded-full" style="width: {{ persona.share }}%"></div>
+                <div class="h-full rounded-full
+                    {% if loop.index % 3 == 1 %} bg-blue-500
+                    {% elif loop.index % 3 == 2 %} bg-yellow-500
+                    {% else %} bg-purple-500
+                    {% endif %}"
+                    style="width: {{ persona.share }}%">
+                </div>
             </div>
             <p class="text-xs text-indigo-400 mt-1">Estimated Share of Chat: {{ persona.share }}%</p>
             </div>
