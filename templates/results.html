@@ -149,7 +149,7 @@
                     style="width: {{ persona.share }}%">
                 </div>
             </div>
-            <p class="text-xs text-indigo-400 mt-1">Estimated Share of Chat: {{ persona.share }}%</p>
+            <p class="text-xs text-gray-400 mt-1">Estimated Share of Chat: {{ persona.share }}%</p>
             </div>
 
             <div class="mt-4 flex justify-between text-sm text-gray-300 items-center">
@@ -178,15 +178,18 @@
 
         <h4 class="text-md font-semibold text-indigo-300 mb-2">Key Feedback</h4>
         {% for insight in persona.key_feedback %}
-            <div class="mb-4">
+            <div class="mb-6">
             <p class="text-sm font-semibold text-white mb-1">{{ insight.label }}</p>
             <ul class="ml-4 list-disc text-sm text-white/80 space-y-1">
                 {% for c in insight.comments %}
                 <li>{{ c }}</li>
                 {% endfor %}
             </ul>
-            <p class="mt-2 text-xs text-indigo-200">Recommendation: {{ insight.recommendation }}</p>
+            <!-- <p class="mt-2 text-xs text-indigo-200"></p> -->
             </div>
+
+        <h4 class="text-md font-semibold text-indigo-300 mb-2">Recommendation: {{ insight.recommendation }}</h4>
+
         {% endfor %}
 
         <p class="text-md mt-4 text-white/60 text-center">Click to flip back</p>
