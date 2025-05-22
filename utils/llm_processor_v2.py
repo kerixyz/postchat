@@ -44,7 +44,7 @@ def process_comments(comments_df, num_personas=3, sample_size=200):
 
         Step 2: For each persona, generate the following structured data:
         - "name": A concise, descriptive label (e.g., "The Hype Booster", "The Backseat Strategist")
-        - "description": 1–2 sentences describing their role or behavior in chat
+        - "description": 3 sentences describing their role or behavior in chat
         - "share": An estimated percentage (0–100%) representing how common this persona is in the chat sample
         - "sentiment_label": One of "Positive", "Neutral", or "Negative"
         - "sentiment_percent": An estimated proportion of this persona’s messages that carry the dominant sentiment (e.g., "75%")
