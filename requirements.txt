@@ -6,3 +6,4 @@ textblob
 chat-downloader
 python-dotenv
 requests
+isodate

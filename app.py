@@ -9,6 +9,8 @@ from utils.llm_processor import process_comments
 from utils.llm_processor_v2 import batch_process_comments
 from utils.llm_processor_v2 import compare_personas
 from utils.twitch_api import get_vod_metadata
+from utils.yt_scraper import download_youtube_chat
+from utils.youtube_api import get_video_metadata
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = 'data'
@@ -82,6 +84,56 @@ def download_twitch():
         })
         return redirect(url_for('show_results', vod_id=vod_id))
     
+    except Exception as e:
+        return render_template('error.html', message=str(e))
+
+@app.route('/youtube')
+def youtube_form():
+    return render_template('youtube.html')  # Create a simple HTML form like your Twitch form
+
+
+@app.route('/download_youtube', methods=['POST'])
+def download_youtube():
+    try:
+        youtube_url = request.form.get('youtube_url').strip()
+        video_id = youtube_url.split('v=')[-1].split('&')[0]
+
+        success, message = download_youtube_chat(youtube_url, app.config['DATA_DIR'])
+        if not success:
+            return render_template('error.html', message=message)
+
+        comments_path = os.path.join(app.config['DATA_DIR'], 'youtube_chat', f'{video_id}.csv')
+        comments_df = pd.read_csv(comments_path)
+        result = batch_process_comments(comments_df, batch_size=200, num_personas=3)
+
+        personas = result.get("personas", [])
+        summaries = {
+            "overall_summary": " ".join(result.get("summaries", {}).values()),
+            "total_messages": len(comments_df),
+            "unique_users": comments_df['user_id'].nunique() if 'user_id' in comments_df.columns else "N/A"
+        }
+
+        video_metadata = get_video_metadata(video_id)
+        if not video_metadata:
+            raise Exception("Unable to fetch YouTube video metadata")
+
+        video_info = {
+            "title": video_metadata["title"],
+            "duration": video_metadata["duration"],
+            "thumbnail": video_metadata["thumbnail_url"],
+            "broadcaster": video_metadata["channel_title"],
+            "stream_date": video_metadata["published_at"],
+            "views": video_metadata["view_count"],
+            "language": video_metadata.get("language", "N/A")
+        }
+
+        save_analysis(video_id, {
+            'personas': personas,
+            'summaries': summaries,
+            'metadata': video_info
+        })
+        return redirect(url_for('show_results', vod_id=video_id))
+
     except Exception as e:
         return render_template('error.html', message=str(e))
 
@@ -170,8 +222,7 @@ def save_analysis(vod_id, data):
         upload_to_supabase(path, f"{key}/{vod_id}_{key}.json")
 
 
-
 if __name__ == '__main__':
-    for subdir in ['twitch_chat', 'personas', 'summaries']:
+    for subdir in ['twitch_chat', 'youtube_chat', 'personas', 'summaries']:
         os.makedirs(os.path.join(app.config['DATA_DIR'], subdir), exist_ok=True)
     app.run(debug=True)
