@@ -4,6 +4,9 @@ from chat_downloader import ChatDownloader
 
 def download_youtube_chat(video_url, data_dir, max_messages=1000):
     try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36'
+        }
         downloader = ChatDownloader()
         chat = downloader.get_chat(
             url=video_url,
