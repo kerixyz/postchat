@@ -19,6 +19,10 @@ app.config['DATA_DIR'] = 'data'
 def index():
     return render_template('index.html')
 
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
 @app.route('/results/<vod_id>')
 def show_results(vod_id):
     analysis_data = {
@@ -27,7 +31,6 @@ def show_results(vod_id):
         'video_info': load_json(f'metadata/{vod_id}_metadata.json')
     }
     return render_template('results.html', vod_id=vod_id, **analysis_data)
-
 
 @app.route('/download_twitch', methods=['POST'])
 def download_twitch():
@@ -90,7 +93,6 @@ def download_twitch():
 @app.route('/youtube')
 def youtube_form():
     return render_template('youtube.html')  # Create a simple HTML form like your Twitch form
-
 
 @app.route('/download_youtube', methods=['POST'])
 def download_youtube():
@@ -205,7 +207,6 @@ def upload_to_supabase(local_path, remote_path):
     else:
         print(f"❌ Upload failed: {res.status_code} - {res.text}")
 
-
 def load_json(relative_path):
     # Local check
     path = os.path.join(app.config['DATA_DIR'], relative_path)
@@ -227,7 +228,6 @@ def load_json(relative_path):
     except Exception as e:
         print(f"⚠️ Failed to fetch from Supabase: {remote_url}\n{e}")
         return {}
-
 
 def save_analysis(vod_id, data):
     for key in ['personas', 'summaries', 'metadata']:

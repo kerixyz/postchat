@@ -1,22 +1,45 @@
 {% extends "base.html" %}
-{% block title %}Home - Post Chat Analysis{% endblock %}
+{% block title %}Home - PostChat Analysis{% endblock %}
+
 {% block content %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Twitch Analyzer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-900 text-white p-8">
-    <div class="max-w-xl mx-auto">
-        <h1 class="text-3xl font-bold mb-6">Analyze Twitch Chat</h1>
-        <form action="/download_twitch" method="POST" class="space-y-4">
-            <input name="twitch_url" placeholder="Enter Twitch VOD URL" required
-                   class="w-full p-3 rounded bg-gray-800 border border-gray-600" />
-            <button type="submit"
-                    class="bg-indigo-600 px-6 py-2 rounded text-white hover:bg-indigo-500">Analyze</button>
-        </form>
+<div class="bg-gray-900 text-white py-12 px-6 min-h-screen">
+    <div class="max-w-2xl mx-auto space-y-10">
+
+        <div>
+            <h1 class="text-4xl font-bold mb-4">PostChat</h1>
+            <p class="text-lg text-gray-300">
+                <strong>PostChat</strong> is an AI-powered tool that analyzes chat messages from Twitch and YouTube livestreams or VODs.
+                Paste a video URL, and PostChat will extract the conversation, identify key personas, and generate summaries of audience behavior and engagement.
+            </p>
+            <p class="text-lg text-gray-300 mt-4">
+                Whether you're a streamer, researcher, or just curious about community dynamics, PostChat helps you understand what your audience is really saying.
+            </p>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded shadow-md">
+            <h2 class="text-2xl font-semibold mb-4">Analyze Twitch Chat</h2>
+            <form action="/download_twitch" method="POST" class="space-y-4">
+                <input name="twitch_url" type="url" placeholder="https://www.twitch.tv/videos/1234567890" required
+                       class="w-full p-3 rounded bg-gray-700 border border-gray-600 placeholder-gray-400" />
+                <button type="submit"
+                        class="bg-indigo-600 px-6 py-2 rounded text-white hover:bg-indigo-500">
+                    Analyze
+                </button>
+            </form>
+        </div>
+
+        <!-- <div class="bg-gray-800 p-6 rounded shadow-md">
+            <h2 class="text-2xl font-semibold mb-4">Analyze YouTube Chat</h2>
+            <form action="/download_youtube" method="POST" class="space-y-4">
+                <input name="youtube_url" type="url" placeholder="Enter YouTube Video URL" required
+                       class="w-full p-3 rounded bg-gray-700 border border-gray-600 placeholder-gray-400" />
+                <button type="submit"
+                        class="bg-red-600 px-6 py-2 rounded text-white hover:bg-red-500">
+                    Analyze
+                </button>
+            </form>
+        </div> -->
+
     </div>
-</body>
-</html>
+</div>
 {% endblock %}
