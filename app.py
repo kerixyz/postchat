@@ -23,13 +23,29 @@ def index():
 def about():
     return render_template('about.html')
 
+import random
+from flask import Flask, render_template, url_for
+
 @app.route('/results/<vod_id>')
 def show_results(vod_id):
+    # Load analysis data
     analysis_data = {
         'personas': load_json(f'personas/{vod_id}_personas.json'),
         'summaries': load_json(f'summaries/{vod_id}_summaries.json'),
         'video_info': load_json(f'metadata/{vod_id}_metadata.json')
     }
+
+    # List of available icons
+    icon_filenames = [
+        'icon01.png', 'icon02.png', 'icon03.png', 'icon04.png',
+        'icon05.png', 'icon06.png', 'icon07.png', 'icon08.png'
+    ]
+
+    selected_icons = random.sample(icon_filenames, 3)
+
+    for persona, icon in zip(analysis_data['personas'], selected_icons):
+        persona['icon'] = icon
+
     return render_template('results.html', vod_id=vod_id, **analysis_data)
 
 @app.route('/download_twitch', methods=['POST'])
@@ -52,7 +68,7 @@ def download_twitch():
         summaries = {
             "overall_summary": " ".join(result.get("summaries", {}).values()),
             "total_messages": len(comments_df),
-            "unique_users": comments_df['user_id'].nunique() if 'user_id' in comments_df.columns else "N/A"
+            "unique_users": comments_df['author_id'].nunique() if 'author_id' in comments_df.columns else "N/A"
         }
 
         # Fetch Twitch VOD metadata
@@ -112,7 +128,7 @@ def download_youtube():
         summaries = {
             "overall_summary": " ".join(result.get("summaries", {}).values()),
             "total_messages": len(comments_df),
-            "unique_users": comments_df['user_id'].nunique() if 'user_id' in comments_df.columns else "N/A"
+            "unique_users": comments_df['author_id'].nunique() if 'author_id' in comments_df.columns else "N/A"
         }
 
         video_metadata = get_video_metadata(video_id)
