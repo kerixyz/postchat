@@ -205,12 +205,29 @@ def upload_to_supabase(local_path, remote_path):
     else:
         print(f"❌ Upload failed: {res.status_code} - {res.text}")
 
+
 def load_json(relative_path):
+    # Local check
     path = os.path.join(app.config['DATA_DIR'], relative_path)
     if os.path.exists(path):
         with open(path, 'r') as f:
             return json.load(f)
-    return {}
+
+    # Supabase fallback
+    base_url = os.getenv("SUPABASE_URL")  
+    if not base_url:
+        print("⚠️ SUPABASE_URL not set")
+        return {}
+
+    remote_url = f"{base_url}/{relative_path}"
+    try:
+        res = requests.get(remote_url)
+        res.raise_for_status()
+        return res.json()
+    except Exception as e:
+        print(f"⚠️ Failed to fetch from Supabase: {remote_url}\n{e}")
+        return {}
+
 
 def save_analysis(vod_id, data):
     for key in ['personas', 'summaries', 'metadata']:
