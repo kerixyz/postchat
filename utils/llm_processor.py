@@ -32,27 +32,59 @@ def process_comments(comments_df, num_personas=3, sample_size=200):
     sample_comments = comments[:sample_size]
 
     prompt = f"""
-        You are an expert in sociolinguistic and behavioral analysis of live streaming communities, with a focus on Twitch chat.
+        You are an expert in sociolinguistics and behavioral analysis of live streaming communities, specializing in Twitch chat.
 
-        Your task is to analyze the following Twitch chat messages and extract structured *viewer personas*. Use a step-by-step process.
+        Your task is to analyze the following Twitch chat messages and extract structured *viewer personas*. Use only the following grounded persona types from Schuck (2023):
 
-        Step 1: Identify {num_personas} distinct viewer personas based on recurring communication patterns, tone, goals, and social cues.
+        1. **System Alterer (SA)**: Viewers who attempt to influence or steer the streamer’s behavior or content (e.g., advice, critique, backseating).
+        2. **Financial Sponsor (FS)**: Viewers motivated by financial support, including subs, donations, gifted memberships, or monetary encouragement.
+        3. **Social Player (SP)**: Viewers driven by social interaction, fun, and engagement (e.g., games, emotes, memes, raffles, in-group bonding).
 
-        Step 2: For each persona, generate the following structured data:
-        - "name": A concise, descriptive label (e.g., "The Hype Booster", "The Backseat Strategist")
-        - "description": 1–2 sentences describing their role or behavior in chat
-        - "share": An estimated percentage (0–100%) representing how common this persona is in the chat sample
-        - "sentiment_label": One of "Positive", "Neutral", or "Negative"
-        - "sentiment_percent": An estimated proportion of this persona’s messages that carry the dominant sentiment (e.g., "75%")
-        - "theme": The dominant intent or tone (e.g., Encouragement, Critique, Humor, Frustration)
-        - "feedback": 3–5 representative chat messages from this persona group
-        - "key_feedback": A list of notable concerns or insights
-        - Each entry includes:
-            - "label": a short summary of the issue
-            - "comments": example messages reflecting that issue
-            - "recommendation": a concise suggestion for the streamer to address this
+        ---
 
-        Step 3: Use only information grounded in the provided messages. Do not hallucinate or fabricate ungrounded interpretations.
+        ### Step-by-Step Reasoning
+
+        **Step 1: Assign Every Message a Persona**
+
+        Categorize every message into one of the three personas using the **best fit** approach. For each message, ask:
+
+        - Is the message trying to **change, suggest, or direct** the stream or streamer? → Assign **SA**
+        - Is it referring to **supporting the stream financially**? → Assign **FS**
+        - Is it about **having fun, playing along, or engaging with chat/game elements**? → Assign **SP**
+
+        **Every message must be assigned exactly one persona** based on dominant intent — no messages should be excluded.
+
+        ---
+
+        **Step 2: Group Messages by Persona**
+
+        Once labeled, cluster messages into groups by persona type.
+
+        ---
+
+        **Step 3: Extract Persona Insights**
+
+        For each of the 3 persona types that appear in the data, produce the following structured output:
+
+        - `"name"`: Use one of: "System Alterer", "Financial Sponsor", or "Social Player"
+        - `"description"`: 1–2 sentence summary of this persona’s behavior in this chat context
+        - `"share"`: Approximate percentage (0–100%) of total messages attributed to this persona
+        - `"sentiment_label"`: Dominant sentiment — "Positive", "Neutral", or "Negative"
+        - `"sentiment_percent"`: Approximate percent of that group’s messages matching the dominant sentiment (e.g., "65%")
+        - `"theme"`: Dominant tone or intent (e.g., Advice, Encouragement, Playfulness, Critique)
+        - `"feedback"`: 3–5 representative messages from this persona group
+        - `"key_feedback"`: Insights raised by this persona group. For each, include:
+            - `"label"`: A short summary of the issue or theme
+            - `"comments"`: Supporting chat message examples
+            - `"recommendation"`: A short suggestion for the streamer
+
+        ---
+
+        **Step 4: Stay Grounded**
+
+        Base all insights and categorizations only on the provided chat messages. Do not invent or extrapolate beyond what is shown.
+
+        ---
 
         Input:
         Sample Messages:
