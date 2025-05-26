@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Insights - PostChat Analysis{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+
+  <!-- 🧠 Left: Header and metadata -->
+  <section class="md:col-span-2 space-y-4">
+    <div>
+      <h1 class="text-3xl font-bold text-white">Analyzing Chat Negativity</h1>
+      <p class="text-gray-300">Here's what stood out to us. Take what works for you!</p>
+    </div>
+
+    <div class="flex items-start gap-4">
+      <img src="https://static-cdn.jtvnw.net/ttv-boxart/21779-285x380.jpg"
+           alt="League of Legends thumbnail"
+           class="w-16 h-auto rounded shadow-md" />
+      <div class="text-sm text-gray-400 space-y-1">
+        <p><strong>Category:</strong> League of Legends</p>
+        <p><strong>Streamed on:</strong> May 21, 2025</p>
+        <p><strong>Duration:</strong> 30m </p>
+        <p><strong>Views:</strong> 134 </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 📌 Right: Tooltip (aligned at top) -->
+  <div class="self-start">
+    <div id="feedbackBox" class="bg-purple-700 text-white rounded-lg p-4 relative shadow-lg">
+      <button onclick="document.getElementById('feedbackBox').remove()" 
+              class="absolute top-2 right-3 text-white text-lg leading-none focus:outline-none hover:text-gray-300">
+        &times;
+      </button>
+      <h3 class="font-semibold text-lg mb-2">
+        Learn why you are receiving negative comments on your stream.
+      </h3>
+      <p class="text-sm leading-snug text-white/90">
+        We reviewed your chat and found some negative messages. We’ve used that information to give you helpful feedback, so you can make your future streams better and more welcoming.
+      </p>
+    </div>
+  </div>
+
+  <!-- 📊 Left: Chart + Chat -->
+  <div class="md:col-span-2 space-y-6">
+    <!-- Chart -->
+    <section class="bg-gray-800 p-4 rounded shadow">
+      <h2 class="text-xl font-semibold mb-2">Chat Activity</h2>
+      <canvas id="chatChart" class="w-full" style="height: 120px;"></canvas>
+    </section>
+
+    <!-- Chat Transcript -->
+    <section class="bg-gray-800 p-4 rounded shadow">
+      <h2 class="text-xl font-semibold mb-2">Chat Transcript</h2>
+      <div id="chatSection" class="max-h-[300px] overflow-y-auto space-y-2">
+        {% for msg in chat_messages %}
+          <div id="msg-{{ loop.index }}"
+               class="p-3 rounded border-l-4"
+               style="border-left: 4px solid {{ themes.get(msg.category, {}).get('color', '#ccc') }};">
+            <span class="text-gray-400">{{ msg.time }}</span>
+            <span class="font-semibold text-indigo-300">{{ msg.user }}</span>:
+            <span>{{ msg.message }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+  <!-- 🧠 Right: Themes -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold">Themes</h2>
+    {% for key, theme in themes.items() %}
+      <details id="theme-{{ key }}" class="p-6 rounded shadow space-y-4 text-white border-l-4"
+               style="border-color: {{ theme.color }}; background-color: #1f2937;">
+        <summary class="text-lg font-semibold">{{ theme.title }}</summary>
+        <p>{{ theme.description }}</p>
+
+        <div>
+          <h4 class="font-semibold mb-1">Findings</h4>
+          <ul class="list-disc list-inside space-y-1 text-sm">
+            {% for item in theme.findings %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-1">Recommendations</h4>
+          <ul class="list-disc list-inside space-y-1 text-sm">
+            {% for item in theme.recommendations %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </details>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const chartData = {{ chart_data | tojson }};
+  const themeColors = {{ themes | tojson }};
+  const labels = chartData.map(d => d.time);
+  const values = chartData.map(d => d.count);
+  const colors = chartData.map(d =>
+    d.theme && themeColors[d.theme] ? themeColors[d.theme].color : '#6b7280'
+  );
+
+  const ctx = document.getElementById('chatChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors
+      }]
+    },
+    options: {
+      onClick: (e, elements) => {
+        if (elements.length > 0) {
+          const index = elements[0].index;
+          const target = chartData[index];
+          const msgEl = document.getElementById(`msg-${target.first_index + 1}`);
+          if (msgEl) msgEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (target.theme) {
+            const themeEl = document.getElementById(`theme-${target.theme}`);
+            if (themeEl) themeEl.open = true;
+          }
+        }
+      },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { title: { display: true, text: 'Time (hh:mm:ss)' }, ticks: { color: '#d1d5db' }},
+        y: { title: { display: true, text: 'Message Count' }, ticks: { color: '#d1d5db' }, beginAtZero: true }
+      }
+    }
+  });
+</script>
+{% endblock %}

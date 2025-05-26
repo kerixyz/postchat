@@ -3,7 +3,8 @@ import os
 import requests
 import json
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
+from collections import defaultdict, Counter
 from utils.tc_scraper import download_twitch_chat
 from utils.llm_processor import process_comments
 from utils.llm_processor_v2 import batch_process_comments
@@ -23,8 +24,117 @@ def index():
 def about():
     return render_template('about.html')
 
-import random
-from flask import Flask, render_template, url_for
+def bucketize_chat(messages, bucket_minutes=5):
+    def parse_time(t):
+        h, m, s = map(int, t.split(":"))
+        return timedelta(hours=h, minutes=m, seconds=s)
+
+    buckets = defaultdict(list)
+
+    for i, msg in enumerate(messages):
+        t = parse_time(msg["time"]).total_seconds()
+        bucket_seconds = int((t // (bucket_minutes * 60)) * (bucket_minutes * 60))
+        bucket_key = str(timedelta(seconds=bucket_seconds))
+        buckets[bucket_key].append((i, msg))
+
+    results = []
+    for key, entries in sorted(buckets.items()):
+        indices, msgs = zip(*entries)
+        themes = [m["category"] for m in msgs if m["category"]]
+        most_common_theme = Counter(themes).most_common(1)
+        theme = most_common_theme[0][0] if most_common_theme else None
+        results.append({
+            "time": key,
+            "count": len(msgs),
+            "first_index": indices[0],
+            "theme": theme
+        })
+
+    return results
+
+@app.route('/demo')
+def demo():
+    chat_messages = [
+        {"time": "0:00:01", "user": "GankPlz", "message": "ayo we live 🟢", "category": None},
+        {"time": "0:00:02", "user": "biscuitbay", "message": "hi chat!!!", "category": None},
+        {"time": "0:00:03", "user": "wardpls", "message": "LET’S GOOOO", "category": None},
+        {"time": "0:00:05", "user": "comfyYordle", "message": "snacks secured", "category": None},
+        {"time": "0:00:10", "user": "emojiCloud", "message": "🌟 streamer is online 🌟", "category": None},
+        {"time": "0:00:15", "user": "autofilledagain", "message": "stream looking crispy today", "category": None},
+        {"time": "0:08:38", "user": "glacialtempo", "message": "streamer already tilted 😭", "category": "Trolling"},
+        {"time": "0:08:46", "user": "wardpls", "message": "tower dive incoming", "category": None},
+        {"time": "0:08:49", "user": "pokeflexer", "message": "CAT", "category": None},
+        {"time": "0:08:52", "user": "GlitchQueen", "message": "This team is full of brain-dead monkeys", "category": "Profanity"},
+        {"time": "0:00:00", "user": "generalspazzzz", "message": "Dude you’re so trash, uninstall", "category": "Profanity"},
+        {"time": "0:08:56", "user": "VayneDiff", "message": "wait we’re losing to THAT team?", "category": "Trolling"},
+        {"time": "0:09:12", "user": "generalspazzzz", "message": "chat’s getting spicy rn", "category": None},
+        {"time": "0:11:42", "user": "glacialtempo", "message": "nice flash lmao", "category": "Trolling"},
+        {"time": "0:11:59", "user": "jerkstorerxD", "message": "bet he’s playing with his feet", "category": "Trolling"},
+        {"time": "0:15:17", "user": "ThreshMain99", "message": "no shot bro is still trying", "category": "Trolling"},
+        {"time": "0:15:20", "user": "grabbsmurf", "message": "lmao carried again", "category": "Trolling"},
+        {"time": "0:15:24", "user": "Iron3Lifer", "message": "say “Jungle diff” if you’re real 😂", "category": "Trolling"},
+        {"time": "0:15:27", "user": "BluewardKing", "message": "Yo you should queue ranked again, this time go AFK", "category": "Trolling"},
+        {"time": "0:15:41", "user": "BusDriverLux", "message": "0/7 but he’s “learning” 😭", "category": "Trolling"},
+        {"time": "0:15:55", "user": "LeagueMom", "message": "chat, y’all okay today??", "category": None},
+        {"time": "0:20:30", "user": "snackattacktft", "message": "when you gonna collab with faker? 😂", "category": "Other Streamers"},
+        {"time": "0:21:05", "user": "trashdiveTV", "message": "lol this guy plays like Nightblue but without the clout", "category": "Other Streamers"},
+        {"time": "0:21:11", "user": "KDA4lyfe", "message": "wait didn’t that dude flame you last week?", "category": "Trolling"},
+        {"time": "0:21:14", "user": "potionlord", "message": "bro thinks he’s tyler1", "category": "Other Streamers"},
+        {"time": "0:21:17", "user": "KICKjax", "message": "say less, you’re way better than LS", "category": "Other Streamers"},
+        {"time": "0:21:20", "user": "soloqonly", "message": "T1 viewers be wildin fr", "category": "Other Streamers"},
+        {"time": "0:21:23", "user": "ZoningIsHard", "message": "he’s just a worse version of dantes", "category": "Other Streamers"},
+        {"time": "0:21:27", "user": "9deaths1win", "message": "didn’t you ragequit when Tarzaned came in your stream?", "category": "Other Streamers"},
+        {"time": "0:24:40", "user": "comfyYordle", "message": "i came for chill league not influencer beef 💀", "category": "Other Streamers"},
+        {"time": "0:30:12", "user": "catnaplux", "message": "bye bye ", "category": None}
+    ]
+
+    themes = {
+        "Profanity": {
+            "title": "Cursing, Profanity, and Exclusionary Language",
+            "color": "#3b82f6",
+            "description": "This category highlights messages that focus on swearing, insults, and harmful or dehumanizing language.",
+            "findings": [
+                'Users used insults and dehumanizing phrases (e.g., "brain-dead monkeys", "you\'re so trash").',
+                "Messages were aggressive and repeated within a short time, creating a hostile tone."
+            ],
+            "recommendations": [
+                "Use moderation tools to automatically filter or flag profanity and personal attacks.",
+                "Set clear chat rules and apply timeouts or bans for repeated toxic behavior."
+            ]
+        },
+        "Trolling": {
+            "title": "Trolling",
+            "description": "This category highlights messages that include baiting, fake tips, and sarcastic mockery meant to derail or agitate.",
+            "color": "#facc15",
+            "findings": [
+                'Several users posted baiting or sarcastic messages intended to provoke (e.g., “go AFK”, “0/7 but he’s ‘learning’”).',
+                "Troll messages disrupted the tone of the chat and encouraged pile-on behavior."
+            ],
+            "recommendations": [
+                "Enable keyword-based filters for phrases often used in sarcastic trolling or passive aggression.",
+                "Address repeated trolling with escalating timeouts to reduce derailing behavior."
+            ]
+        },
+        "Other Streamers": {
+            "title": "Other Content Creators",
+            "color": "#8b5cf6",
+            "description": "This category highlights comments about or comparisons to other streamers — often negative or drama-inducing.",
+            "findings": [
+                'Chatters made passive-aggressive comparisons targeting other creators (e.g., “you’re way better than LS”).',
+                "Comments encouraged revisited past drama, fueling ongoing tension."
+            ],
+            "recommendations": [
+                "Monitor for indirect callouts or baiting comparisons, especially around known figures or communities.",
+                "Use soft moderation (e.g., warning prompts or cooldowns) to prevent escalation without over-policing."
+            ]
+        }
+    }
+
+
+    chart_data = bucketize_chat(chat_messages, bucket_minutes=5)
+
+    return render_template("demo.html", chat_messages=chat_messages, themes=themes, chart_data=chart_data)
+
 
 @app.route('/results/<vod_id>')
 def show_results(vod_id):
