@@ -330,9 +330,9 @@ def upload_to_supabase(local_path, remote_path):
         )
 
     if res.status_code in [200, 201]:
-        print(f"✅ Uploaded {remote_path} to Supabase.")
+        print(f"Uploaded {remote_path} to Supabase.")
     else:
-        print(f"❌ Upload failed: {res.status_code} - {res.text}")
+        print(f"Upload failed: {res.status_code} - {res.text}")
 
 def load_json(relative_path):
     # Local check
