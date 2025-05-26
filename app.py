@@ -3,6 +3,7 @@ import os
 import requests
 import json
 import pandas as pd
+import random
 from datetime import datetime, timedelta
 from collections import defaultdict, Counter
 from utils.tc_scraper import download_twitch_chat
