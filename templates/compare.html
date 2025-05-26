@@ -4,37 +4,61 @@
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-6">
 
-  <h2 class="text-2xl font-bold text-purple-400 mb-6">Compare Viewer Personas</h2>
+<h2 class="text-2xl font-bold text-purple-400 mb-6">
+  Compare Viewer Personas for:
+  <select id="broadcaster_select" name="broadcaster" required
+  class="text-2xl font-bold bg-gray-900 text-purple-400 border border-gray-700 rounded px-4 py-2 ml-2 appearance-none">
+  <option value="">Streamer</option>
+  {% for b in broadcasters %}
+    <option value="{{ b }}" {% if b == selected_broadcaster %}selected{% endif %}>{{ b }}</option>
+  {% endfor %}
+</select>
 
-  <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-    <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-white">
-        <h3 class="text-lg font-bold mb-2">Select VOD A</h3>
-        <select name="vod_a" required class="w-full bg-gray-900 text-white border border-gray-600 rounded px-3 py-2">
-        {% for vod in vod_options %}
-            <option value="{{ vod.id }}" {% if vod.id == vod_a %}selected{% endif %}>
-            {{ vod.broadcaster }} - {{ vod.title }} ({{ vod.stream_date }})
-            </option>
-        {% endfor %}
-        </select>
-    </div>
+</h2>
 
-    <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-white">
-        <h3 class="text-lg font-bold mb-2">Select VOD B</h3>
-        <select name="vod_b" required class="w-full bg-gray-900 text-white border border-gray-600 rounded px-3 py-2">
-        {% for vod in vod_options %}
-            <option value="{{ vod.id }}" {% if vod.id == vod_b %}selected{% endif %}>
-            {{ vod.broadcaster }} - {{ vod.title }} ({{ vod.stream_date }})
-            </option>
-        {% endfor %}
-        </select>
-    </div>
+<form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10" id="vodForm">
+  <input type="hidden" name="selected_broadcaster" id="selected_broadcaster_input" value="{{ selected_broadcaster or '' }}">
 
-    <div class="md:col-span-2 text-center">
-        <button type="submit" class="mt-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2 rounded">
-        Compare
-        </button>
-    </div>
-    </form>
+  <!-- VOD A -->
+  <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-white">
+    <h3 class="text-lg font-bold mb-2">VOD A</h3>
+    <select name="vod_a" id="vod_a" required class="w-full bg-gray-900 text-white border border-gray-600 rounded px-3 py-2">
+      <option value="">Select VOD</option>
+      {% for vod in vod_options if vod.broadcaster == selected_broadcaster %}
+        <option value="{{ vod.id }}" {% if vod.id == vod_a %}selected{% endif %}>
+          {{ vod.title }} ({{ vod.stream_date }})
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- VOD B -->
+  <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-white">
+    <h3 class="text-lg font-bold mb-2">Select VOD B</h3>
+    <select name="vod_b" id="vod_b" required class="w-full bg-gray-900 text-white border border-gray-600 rounded px-3 py-2">
+      <option value="">Select VOD</option>
+      {% for vod in vod_options if vod.broadcaster == selected_broadcaster %}
+        <option value="{{ vod.id }}" {% if vod.id == vod_b %}selected{% endif %}>
+          {{ vod.title }} ({{ vod.stream_date }})
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="md:col-span-2 text-center">
+    <button type="submit" class="mt-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2 rounded">
+      Compare
+    </button>
+  </div>
+</form>
+<script>
+  document.getElementById('broadcaster_select').addEventListener('change', function () {
+    // Submit form to reload VOD dropdowns with new broadcaster filter
+    document.getElementById('selected_broadcaster_input').value = this.value;
+    document.getElementById('vodForm').submit();
+  });
+</script>
+
 
 
   {% if personas_a and personas_b %}
