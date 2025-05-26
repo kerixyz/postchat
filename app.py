@@ -380,26 +380,33 @@ def upload_to_supabase(local_path, remote_path):
         print(f"Upload failed: {res.status_code} - {res.text}")
 
 def load_json(relative_path):
-    # Local check
-    path = os.path.join(app.config['DATA_DIR'], relative_path)
-    if os.path.exists(path):
-        with open(path, 'r') as f:
+    # Try local first
+    local_path = os.path.join(app.config['DATA_DIR'], relative_path)
+    if os.path.exists(local_path):
+        with open(local_path, 'r') as f:
             return json.load(f)
 
     # Supabase fallback
-    base_url = os.getenv("SUPABASE_URL")  
-    if not base_url:
-        print("⚠️ SUPABASE_URL not set")
+    base_url = os.getenv("SUPABASE_URL")
+    bucket = os.getenv("SUPABASE_BUCKET")
+    key = os.getenv("SUPABASE_API_KEY")
+
+    if not base_url or not bucket:
+        print("⚠️ SUPABASE_URL or SUPABASE_BUCKET not set")
         return {}
 
-    remote_url = f"{base_url}/{relative_path}"
+    remote_url = f"{base_url}/storage/v1/object/public/{bucket}/{relative_path}"
     try:
-        res = requests.get(remote_url)
+        res = requests.get(remote_url, headers={
+            "apikey": key,
+            "Authorization": f"Bearer {key}"
+        })
         res.raise_for_status()
         return res.json()
     except Exception as e:
         print(f"⚠️ Failed to fetch from Supabase: {remote_url}\n{e}")
         return {}
+
 
 def save_analysis(vod_id, data):
     for key in ['personas', 'summaries', 'metadata']:
