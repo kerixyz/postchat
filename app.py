@@ -266,17 +266,62 @@ def download_youtube():
     except Exception as e:
         return render_template('error.html', message=str(e))
 
+import os
+import json
+import requests
+from flask import request, render_template
+
+def list_supabase_metadata_files():
+    base_url = os.getenv("SUPABASE_URL")  # e.g. https://yourproject.supabase.co
+    bucket = os.getenv("SUPABASE_BUCKET")  # e.g. "your-bucket"
+    supabase_key = os.getenv("SUPABASE_API_KEY")
+
+    if not base_url or not bucket:
+        print("⚠️ SUPABASE_URL or SUPABASE_BUCKET not set")
+        return []
+
+    # Supabase Storage list API
+    api_url = f"{base_url}/storage/v1/object/list/{bucket}"
+    params = {"prefix": "metadata/"}
+    headers = {
+        "apikey": supabase_key,
+        "Authorization": f"Bearer {supabase_key}"
+    }
+
+    try:
+        response = requests.get(api_url, headers=headers, params=params)
+        response.raise_for_status()
+        items = response.json()
+
+        return [item['name'] for item in items if item['name'].endswith('_metadata.json')]
+    except Exception as e:
+        print(f"⚠️ Failed to list files from Supabase: {e}")
+        return []
+
+
 @app.route('/compare', methods=['GET', 'POST'])
 def compare():
     metadata_dir = os.path.join(app.config['DATA_DIR'], 'metadata')
+    local_files = []
+
+    # Get local files
+    if os.path.exists(metadata_dir):
+        local_files = [
+            f for f in os.listdir(metadata_dir)
+            if f.endswith('_metadata.json')
+        ]
+
+    # Get Supabase files
+    supabase_files = list_supabase_metadata_files()
+
+    # Merge and deduplicate
+    all_files = sorted(set(local_files + supabase_files))
     vod_options = []
 
-    for filename in os.listdir(metadata_dir):
-        if filename.endswith('_metadata.json'):
-            vod_id = filename.replace('_metadata.json', '')
-            metadata = load_json(f'metadata/{filename}')
-            title = metadata.get("title", "Untitled")
-            date_str = metadata.get("stream_date", "")[:10]
+    for filename in all_files:
+        vod_id = filename.replace('_metadata.json', '')
+        metadata = load_json(f'metadata/{filename}')
+        if metadata:  # Ensure non-empty metadata
             vod_options.append({
                 "id": vod_id,
                 "title": metadata.get("title", "Untitled"),
