@@ -7,6 +7,5 @@ chat-downloader
 python-dotenv
 requests
 isodate
-random
 numpy
 python-dateutil
