@@ -35,97 +35,168 @@ def process_comments(comments_df, num_personas=3, sample_size=200):
 
     sample_comments = comments[:sample_size]
 
-    prompt = f"""
-        You are an expert in sociolinguistics and behavioral analysis of live streaming communities, specializing in Twitch chat.
+    # prompt = f"""
+    #     You are an expert in sociolinguistics and behavioral analysis of live streaming communities, specializing in Twitch chat.
 
-        Your task is to analyze the following Twitch chat messages and extract structured *viewer personas*. Use only the grounded viewer types from Schuck (2023):
+    #     Your task is to analyze the following Twitch chat messages and extract structured *viewer personas*. Use only the grounded viewer types from Schuck (2023):
 
-        1. **System Alterer (SA)**: Viewers who attempt to influence or steer the streamer’s behavior or content (e.g., advice, critique, backseating).
-        2. **Financial Sponsor (FS)**: Viewers motivated by financial support, including subs, donations, gifted memberships, or monetary encouragement.
-        3. **Social Player (SP)**: Viewers driven by social interaction, fun, and engagement (e.g., games, emotes, memes, raffles, in-group bonding).
+    #     1. **System Alterer (SA)**: Viewers who attempt to influence or steer the streamer’s behavior or content (e.g., advice, critique, backseating).
+    #     2. **Financial Sponsor (FS)**: Viewers motivated by financial support, including subs, donations, gifted memberships, or monetary encouragement.
+    #     3. **Social Player (SP)**: Viewers driven by social interaction, fun, and engagement (e.g., games, emotes, memes, raffles, in-group bonding).
 
-        ---
+    #     ---
 
-        ### Step-by-Step Reasoning
+    #     ### Step-by-Step Reasoning
 
-        **Step 1: Assign Every Message a Persona**
+    #     **Step 1: Assign Every Message a Persona**
 
-        Categorize every message into one of the three viewer personas using a **best fit** approach. For each message, ask:
+    #     Categorize every message into one of the three viewer personas using a **best fit** approach. For each message, ask:
 
-        - Is the message trying to **change, suggest, or direct** the streamer? → Assign **SA**
-        - Does it refer to **supporting the stream financially**? → Assign **FS**
-        - Is it about **having fun, reacting, or socializing with others**? → Assign **SP**
+    #     - Is the message trying to **change, suggest, or direct** the streamer? → Assign **SA**
+    #     - Does it refer to **supporting the stream financially**? → Assign **FS**
+    #     - Is it about **having fun, reacting, or socializing with others**? → Assign **SP**
 
-        **Every message must be assigned exactly one persona.**
+    #     **Every message must be assigned exactly one persona.**
 
-        **Also determine each message’s dominant communication focus**:
+    #     **Also determine each message’s dominant communication focus**:
 
-        - **Streamer-focused**: Directed toward or about the streamer.
-        - **Chat-focused**: Directed toward or engaging with other viewers or chat culture.
-        - **Self-focused**: Primarily centered on the speaker themselves (e.g., donations, accomplishments, reactions).
+    #     - **Streamer-focused**: Directed toward or about the streamer.
+    #     - **Chat-focused**: Directed toward or engaging with other viewers or chat culture.
+    #     - **Self-focused**: Primarily centered on the speaker themselves (e.g., donations, accomplishments, reactions).
 
-        ---
+    #     ---
 
-        **Step 2: Group Messages by Persona**
+    #     **Step 2: Group Messages by Persona**
 
-        Once labeled, cluster messages into groups based on their assigned persona type. Consider the communication **focus** to help differentiate intent and reinforce distinctions.
+    #     Once labeled, cluster messages into groups based on their assigned persona type. Consider the communication **focus** to help differentiate intent and reinforce distinctions.
 
-        ---
+    #     ---
 
-        **Step 3: Extract Persona Insights**
+    #     **Step 3: Extract Persona Insights**
 
-        For each of the 3 persona types that appear in the data, generate the following structured summary:
+    #     For each of the 3 persona types that appear in the data, generate the following structured summary:
                 
-        - `"name"`: One of "System Alterer", "Financial Sponsor", or "Social Player"
-        - `"description"`: 1–2 sentence summary of this persona’s behavior and how it's distinct
-        - `"share"`: Approximate percent (0–100) of total messages in this group
-        - `"sentiment_label"`: Dominant sentiment — "Positive", "Neutral", or "Negative"
-        - `"sentiment_percent"`: Percent of messages with that sentiment
-        - `"theme"`: Dominant tone or function — e.g., "Hype", "Advice", "Praise", "Critique", "Playfulness"
-        - `"focus"`: Dominant communication focus — one of: "Streamer-focused", "Chat-focused", or "Self-focused"
-        - `"feedback"`: 3–5 representative messages from this persona group
-        - `"key_feedback"`: A list of insights raised. For each, include:
-            - `"label"`: Short summary of the issue or theme
-            - `"comments"`: Sample supporting messages
-            - `"recommendation"`: Suggestion for the streamer
+    #     - `"name"`: One of "System Alterer", "Financial Sponsor", or "Social Player"
+    #     - `"description"`: 1–2 sentence summary of this persona’s behavior and how it's distinct
+    #     - `"share"`: Approximate percent (0–100) of total messages in this group
+    #     - `"sentiment_label"`: Dominant sentiment — "Positive", "Neutral", or "Negative"
+    #     - `"sentiment_percent"`: Percent of messages with that sentiment
+    #     - `"theme"`: Dominant tone or function — e.g., "Hype", "Advice", "Praise", "Critique", "Playfulness"
+    #     - `"focus"`: Dominant communication focus — one of: "Streamer-focused", "Chat-focused", or "Self-focused"
+    #     - `"feedback"`: 3–5 representative messages from this persona group
+    #     - `"key_feedback"`: A list of insights raised. For each, include:
+    #         - `"label"`: Short summary of the issue or theme
+    #         - `"comments"`: Sample supporting messages
+    #         - `"recommendation"`: Suggestion for the streamer
 
-        ---
+    #     ---
 
-        ### Step 4: Stay Grounded
+    #     ### Step 4: Stay Grounded
 
-        Base all classifications and insights **only** on the provided chat messages. Do not speculate or infer beyond the data.
+    #     Base all classifications and insights **only** on the provided chat messages. Do not speculate or infer beyond the data.
 
 
-        ---
-        Input:
-        Sample Messages:
-        {json.dumps(sample_comments, indent=2)}
+    #     ---
+    #     Input:
+    #     Sample Messages:
+    #     {json.dumps(sample_comments, indent=2)}
 
-        Respond with a JSON object:
-        {{
-        "personas": [
+    #     Respond with a JSON object:
+    #     {{
+    #     "personas": [
+    #         {{
+    #         "name": "...",
+    #         "description": "...",
+    #         "share": "...",
+    #         "sentiment_label": "...",
+    #         "sentiment_percent": "...",
+    #         "theme": "...",
+    #         "focus": "...",
+    #         "feedback": ["...", "..."],
+    #         "key_feedback": [
+    #             {{
+    #             "label": "...",
+    #             "comments": ["...", "..."],
+    #             "recommendation": "..."
+    #             }}
+    #         ]
+    #         }},
+    #         ...
+    #     ]
+    #     }}
+    #     """
+
+    prompt = f"""
+            You are an expert in sociolinguistics and behavioral analysis of live streaming communities, specializing in Twitch chat.
+
+            Your task is to analyze the following Twitch chat messages and generate **exactly 3 distinct viewer personas**. These personas should be based on observed patterns in:
+
+            - **Intent** (What the viewer is trying to do — influence, support, socialize)
+            - **Communication Focus** (Who the message is aimed at — Streamer, Chat, or Self)
+            - **Tone or Interaction Style** (e.g., Advice, Hype, Critique, Playfulness)
+
+            Use Schuck’s (2023) viewer types — *System Alterer*, *Financial Sponsor*, and *Social Player* — as a theoretical guide to understanding **underlying motivations**, but **do not use those terms as persona names**. Instead, create your own descriptive labels that reflect how each group communicates.
+
+            ---
+
+            ### Step-by-Step Process
+
+            **Step 1: Categorize Each Message by Intent and Focus**
+
+            For each message, assess:
+            - **Intent**: Is the viewer trying to influence the streamer, support them (financially or emotionally), or engage socially?
+            - **Focus**: Is the message directed at the **streamer**, the **chat**, or the **self**?
+            - **Tone**: Is the tone playful, critical, encouraging, reactive, etc.?
+
+            **Step 2: Group Similar Messages into Personas**
+
+            Cluster messages into **3 coherent groups**, ensuring that each persona is **distinct** in either their intent, focus, or tone. You may combine focus types if appropriate, but each persona must represent a unique communication style.
+
+            ---
+
+            ### Output Format
+
+            Respond with a JSON object with the following format:
+
             {{
-            "name": "...",
-            "description": "...",
-            "share": "...",
-            "sentiment_label": "...",
-            "sentiment_percent": "...",
-            "theme": "...",
-            "focus": "...",
-            "feedback": ["...", "..."],
-            "key_feedback": [
+            "personas": [
                 {{
-                "label": "...",
-                "comments": ["...", "..."],
-                "recommendation": "..."
-                }}
+                "name": "The Chat Catalyst",
+                "description": "Energizes the community through memes, fast reactions, and light-hearted banter. Keeps the vibe fun and social.",
+                "share": 45,
+                "intent": "Social Engagement",
+                "focus": "Chat-focused",
+                "theme": "Hype",
+                "sentiment_label": "Positive",
+                "sentiment_percent": 92,
+                "feedback": [
+                    "LMAO that timing was perfect 😂",
+                    "yo chat this emote goes hard",
+                    "PogChamp clutch moment"
+                ],
+                "key_feedback": [
+                    {{
+                    "label": "Group Hype and Reactions",
+                    "comments": ["PogChamp clutch moment", "Wtf chat that was insane"],
+                    "recommendation": "Use emote-heavy moments and interactive alerts to fuel this energy."
+                    }}
+                ]
+                }},
+                ...
             ]
-            }},
-            ...
-        ]
-        }}
-        """
+            }}
 
+            ---
+
+            ### Step 3: Stay Grounded
+
+            Base all insights and personas **only on the provided messages**. Do not speculate or invent motivations beyond what is evident in the content.
+
+            ---
+
+            Chat Messages:
+            {json.dumps(sample_comments, indent=2)}
+            """
 
     try:
         response = client.chat.completions.create(
