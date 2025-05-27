@@ -184,7 +184,6 @@ def download_twitch():
         # result = process_comments(comments_df)
         result = batch_process_comments(comments_df, batch_size=200, num_personas=3)
 
-
         personas = result.get("personas", [])
         summaries = {
             "overall_summary": " ".join(result.get("summaries", {}).values()),

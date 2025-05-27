@@ -75,19 +75,19 @@ def process_comments(comments_df, num_personas=3, sample_size=200):
         **Step 3: Extract Persona Insights**
 
         For each of the 3 persona types that appear in the data, generate the following structured summary:
-
-        - `"name"`: Use one of: "System Alterer", "Financial Sponsor", or "Social Player"
-        - `"description"`: A 1–2 sentence summary describing this persona’s behavior and **how it is distinct** from the others.
-        - `"share"`: Approximate percentage (0–100%) of total messages attributed to this persona
+                
+        - `"name"`: One of "System Alterer", "Financial Sponsor", or "Social Player"
+        - `"description"`: 1–2 sentence summary of this persona’s behavior and how it's distinct
+        - `"share"`: Approximate percent (0–100) of total messages in this group
         - `"sentiment_label"`: Dominant sentiment — "Positive", "Neutral", or "Negative"
-        - `"sentiment_percent"`: Estimated percent of this group’s messages with the dominant sentiment
-        - `"theme"`: Dominant tone or communicative function (e.g., Advice, Hype, Critique, Encouragement, Playfulness, Announcement)
-        - `"focus"`: Dominant communication focus — choose one: "Streamer-focused", "Chat-focused", or "Self-focused"
+        - `"sentiment_percent"`: Percent of messages with that sentiment
+        - `"theme"`: Dominant tone or function — e.g., "Hype", "Advice", "Praise", "Critique", "Playfulness"
+        - `"focus"`: Dominant communication focus — one of: "Streamer-focused", "Chat-focused", or "Self-focused"
         - `"feedback"`: 3–5 representative messages from this persona group
-        - `"key_feedback"`: A list of insights this group raised. For each, include:
-            - `"label"`: Short summary of a recurring issue, behavior, or theme
-            - `"comments"`: Relevant supporting message examples
-            - `"recommendation"`: A brief actionable takeaway for the streamer
+        - `"key_feedback"`: A list of insights raised. For each, include:
+            - `"label"`: Short summary of the issue or theme
+            - `"comments"`: Sample supporting messages
+            - `"recommendation"`: Suggestion for the streamer
 
         ---
 
@@ -108,7 +108,10 @@ def process_comments(comments_df, num_personas=3, sample_size=200):
             "name": "...",
             "description": "...",
             "share": "...",
+            "sentiment_label": "...",
+            "sentiment_percent": "...",
             "theme": "...",
+            "focus": "...",
             "feedback": ["...", "..."],
             "key_feedback": [
                 {{
@@ -152,7 +155,6 @@ def process_comments(comments_df, num_personas=3, sample_size=200):
     except Exception as e:
         print("LLM call failed:", e)
         return {}
-    
     
 
 def batch_process_comments(comments_df, batch_size=200, num_personas=3):
