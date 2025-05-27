@@ -32,6 +32,17 @@ def download_youtube_chat(video_url, data_dir, max_messages=1000):
 
         chat_df = pd.DataFrame(messages)
 
+        # --- Bot Filtering ---
+        known_youtube_bots = [
+            'nightbot', 'streamlabs', 'soundalerts', 'streamelements'
+        ]
+
+        chat_df = chat_df[
+            (chat_df['author_id'].notna()) &
+            (chat_df['author_id'] != '') &
+            (~chat_df['author_name'].str.lower().isin(known_youtube_bots))
+        ]
+
         output_dir = os.path.join(data_dir, 'youtube_chat')
         os.makedirs(output_dir, exist_ok=True)
 

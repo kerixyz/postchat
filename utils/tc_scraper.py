@@ -22,6 +22,20 @@ def download_twitch_chat(video_url, data_dir, max_messages=1000):
             })
         
         chat_df = pd.DataFrame(messages)
+
+        #bot filtering
+        bot_names = [
+            'streamelements', 'own3d', 'creatisbot', 'tangiabot', 'nightbot', 
+            'overlayexpert', 'moobot', 'botrixoficial', 'streamstickers', 
+            'soundalerts', 'streamlabs', 'frostytoolsdotcom', 'wizebot', 
+            'fossabot', 'milanitommasobot'
+        ]
+
+        chat_df = chat_df[
+            (chat_df['author_id'].notna()) & 
+            (chat_df['author_id'] != '') & 
+            (~chat_df['author_name'].str.lower().isin(bot_names))
+        ]
         
         # Ensure output directory exists
         output_dir = os.path.join(data_dir, 'twitch_chat')
